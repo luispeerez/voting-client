@@ -1,11 +1,33 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import {Route, Router, hashHistory, browserHistory} from 'react-router';
+import App from './components/App';
 import Voting from './components/Voting';
+import Results from './components/Results';
+import {createStore} from 'redux';
+import reducer from './reducer';
+import {Provider} from 'react-redux';
 
-const pair = ['Trainspotting', '28 days later'];
-const winner = 'Trainspotting';
+
+const store = createStore(reducer);
+store.dispatch({
+	type: 'SET_STATE',
+	state:{
+		vote:{
+			pair:['Sunshine', '28 days later'],
+			tally:{Sunshine:2}
+		}
+	}
+});
+
+const routes = <Route component={App}>
+	<Route path="/results" component={Results} />
+	<Route path="/" component={Voting} />
+</Route>;
 
 ReactDOM.render(
-  <Voting pair={pair} hasVoted="Trainspotting" winner={winner} />,
+	<Provider store={store}>
+		<Router history={browserHistory}>{routes}</Router>
+	</Provider>,
   document.getElementById('app')
 );
