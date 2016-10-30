@@ -3,24 +3,16 @@ import ReactDOM from 'react-dom';
 import {Route, Router, hashHistory, browserHistory} from 'react-router';
 import App from './components/App';
 import Results from './components/Results';
-import {createStore} from 'redux';
+import {createStore, applyMiddleware} from 'redux';
 import reducer from './reducer';
 import {Provider} from 'react-redux';
 import {VotingContainer} from './components/Voting';
 import {ResultsContainer} from './components/Results';
 import io from 'socket.io-client';
+import {setState} from './action_creators';
+import remoteActionMiddleware from './remote_action_middleware';
 
-const store = createStore(reducer);
-store.dispatch({
-	type: 'SET_STATE',
-	state:{
-		vote:{
-			pair:['Sunshine', '28 days later'],
-			tally:{Sunshine:2}
-		}
-	}
-});
-
+//const store = createStore(reducer);
 const location = {
 	protocol: 'http',
 	hostname: 'localhost'
@@ -29,8 +21,14 @@ const location = {
 //const socket = io(`${location.protocol}//${location.hostname}:8090`);
 const socket = io('http://localhost:8090');
 
+const createStoreWithMiddleware = applyMiddleware(
+	remoteActionMiddleware(socket)
+)(createStore);
+const store = createStoreWithMiddleware(reducer);
+
+
 socket.on('state', state => 
-	store.dispatch({type:'SET_STATE', state})
+	store.dispatch(setState(state))
 );
 
 const routes = <Route component={App}>
